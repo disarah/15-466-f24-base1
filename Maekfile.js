@@ -95,6 +95,7 @@ if (maek.OS === 'windows') {
 const game_objs = [
 	maek.CPP('PlayMode.cpp'),
 	maek.CPP('PPU466.cpp'),
+	maek.CPP('asset_pipeline.cpp'),
 	maek.CPP('main.cpp'),
 	maek.CPP('load_save_png.cpp'),
 	maek.CPP('Load.cpp'),
