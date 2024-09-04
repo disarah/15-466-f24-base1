@@ -109,6 +109,13 @@ void load_tiles(PPU466 *ppu) {
         ppu->tile_table[index] = get_tile(filename, size, data, palette);
         index++;
     }
+
+    // tiles 45 - 54 are the number tiles
+    for (uint8_t i = 0; i < 10; ++i) {
+        filename = "assets/tiles/" + std::to_string(i) + ".png";
+        ppu->tile_table[index] = get_tile(filename, size, data, palette);
+        index++;
+    }
     /*
     // Directory iterator docs: https://en.cppreference.com/w/cpp/filesystem/directory_iterator
     // retired: doesn't call tiles in alphabetical order -> just do it manually

@@ -22,12 +22,18 @@ struct PlayMode : Mode {
 	struct Button {
 		uint8_t downs = 0;
 		uint8_t pressed = 0;
-	} left, right, down, up, hide, w, a, s, d, shoot;
+	} left, right, down, up, hide, unhide, w, a, s, d, shoot;
+
+	bool hidden = false;
+	uint16_t raccoon_color = 3;
+	uint16_t duck_color = 7;
 
 	//some weird background animation:
 	float bg_fade = 0.0f;
 
 	std::array< uint16_t, PPU466::BackgroundWidth * PPU466::BackgroundHeight > map;
+	std::array< uint8_t, 56 > coinx; // Todo: vary # of coins
+	std::array< uint8_t, 56 > coiny; // Todo: vary # of coins
 
 	//player position:
 	glm::vec2 player_at = glm::vec2(PPU466::ScreenWidth/2, PPU466::ScreenHeight/2);

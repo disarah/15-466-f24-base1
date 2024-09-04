@@ -29,14 +29,24 @@ PlayMode::PlayMode() {
 		glm::u8vec4(0x00, 0x00, 0x00, 0xff),
 		glm::u8vec4(0x00, 0x00, 0x00, 0xff),
 	};
-
+	/*
+		Tile table:
+		0-15: player
+		20-35: enemy
+		36-39: bush
+		40: coin
+		41-44: grass
+		45-54: numbers
+	*/
+	
+	
 	/*
 		Palette Table (as shown in palettes.png) (bottom to top)
-		0:
-		1:
+		0: 
+		1: number color
 		2: grass color
 		3: raccoon color
-		4: coin color
+		4: coin color (also victory color)
 		5: bush color
 		6: second duck color
 		7: used for the player (duck color 1)
@@ -49,7 +59,7 @@ PlayMode::PlayMode() {
 		}
 	}
 
-	// add in bushes <- later todo: add in different bush configurations
+	// add in bushes <- later TODO: add in different bush configurations
 	for (uint32_t y = 2; y < PPU466::BackgroundHeight; y+=6) {
 		for (uint32_t x = 3; x < PPU466::BackgroundWidth; x+=8) {
 			map[x+PPU466::BackgroundWidth*y] = (0x05 << 8) | (0x24);
@@ -57,6 +67,11 @@ PlayMode::PlayMode() {
 			map[x+PPU466::BackgroundWidth*(y + 1)] = (0x05 << 8) | (0x26);
 			map[(x + 1)+PPU466::BackgroundWidth*(y + 1)] = (0x05 << 8) | (0x27);
 		}
+	} // 2,3
+
+	for (uint32_t coin_index = 0; coin_index < 56; coin_index++){
+		coinx[coin_index] = std::rand() % 220 + 5;
+		coiny[coin_index] = std::rand() % 220 + 5;
 	}
 }
 
@@ -82,9 +97,13 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			down.downs += 1;
 			down.pressed = true;
 			return true;
-		} else if (evt.key.keysym.sym == SDLK_SLASH) {
+		} else if (evt.key.keysym.sym == SDLK_RSHIFT) {
 			hide.downs += 1;
 			hide.pressed = true;
+			return true;
+		} else if (evt.key.keysym.sym == SDLK_SLASH) {
+			unhide.downs += 1;
+			unhide.pressed = true;
 			return true;
 		} else if (evt.key.keysym.sym == SDLK_a) {
 			a.downs += 1;
@@ -120,8 +139,11 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		} else if (evt.key.keysym.sym == SDLK_DOWN) {
 			down.pressed = false;
 			return true;
-		} else if (evt.key.keysym.sym == SDLK_SLASH) {
+		} else if (evt.key.keysym.sym == SDLK_RSHIFT) {
 			hide.pressed = false;
+			return true;
+		} else if (evt.key.keysym.sym == SDLK_SLASH) {
+			unhide.pressed = false;
 			return true;
 		} else if (evt.key.keysym.sym == SDLK_a) {
 			a.pressed = false;
@@ -152,43 +174,81 @@ void PlayMode::update(float elapsed) {
 	bg_fade -= std::floor(bg_fade);
 
 	constexpr float PlayerSpeed = 30.0f;
-	if (left.pressed) {
-		player_at.x -= PlayerSpeed * elapsed;
-		player_offset = 0;
-	}
-	if (right.pressed) {
-		player_at.x += PlayerSpeed * elapsed;
-		player_offset = 4;
-	}
-	if (down.pressed) {
-		player_at.y -= PlayerSpeed * elapsed;
-		player_offset = 8;
-	}
-	if (up.pressed) {
-		player_at.y += PlayerSpeed * elapsed;
-		player_offset = 12;
+	if(!hidden){
+		if (left.pressed) {
+			player_at.x -= PlayerSpeed * elapsed;
+			player_at.x = std::clamp(player_at.x, 0.f, 240.f);
+			player_offset = 0;
+		}
+		if (right.pressed) {
+			player_at.x += PlayerSpeed * elapsed;
+			player_at.x = std::clamp(player_at.x, 0.f, 240.f);
+			player_offset = 4;
+		}
+		if (down.pressed) {
+			player_at.y -= PlayerSpeed * elapsed;
+			player_at.y = std::clamp(player_at.y, 0.f, 240.f);
+			player_offset = 8;
+		}
+		if (up.pressed) {
+			player_at.y += PlayerSpeed * elapsed;
+			player_at.y = std::clamp(player_at.y, 0.f, 240.f);
+			player_offset = 12;
+		}
 	}
 	if (hide.pressed) {
-		player_hide ^= 0x80;
+		uint16_t posx = (uint16_t)std::round(player_at.x / 8 - 3);
+		uint16_t posy = (uint16_t)std::round(player_at.y / 8 - 2);
+
+		if((posx %8 <= 1 | posx %8 >= 7) && (posy %6 <= 1 | posy %6 >= 5)){
+			hidden = true;
+			player_hide = 0x80;
+			player_at.x = (std::round((float)posx/8.f)*8 + 3) * 8.f;
+			player_at.y = (std::round((float)posy/6.f)*6 + 2) * 8.f;
+		}
+	}
+	if (unhide.pressed) {
+		hidden = false;
+		player_hide = 0x00;
 	}
 	if (a.pressed) {
 		enemy_at.x -= PlayerSpeed * elapsed;
+		enemy_at.x = std::clamp(enemy_at.x, 0.f, 240.f);
 		enemy_offset = 0;
 	}
 	if (d.pressed) {
 		enemy_at.x += PlayerSpeed * elapsed;
+		enemy_at.x = std::clamp(enemy_at.x, 0.f, 240.f);
 		enemy_offset = 4;
 	}
 	if (s.pressed) {
 		enemy_at.y -= PlayerSpeed * elapsed;
+		enemy_at.y = std::clamp(enemy_at.y, 0.f, 240.f);
 		enemy_offset = 8;
 	}
 	if (w.pressed) {
 		enemy_at.y += PlayerSpeed * elapsed;
+		enemy_at.y = std::clamp(enemy_at.y, 0.f, 240.f);
 		enemy_offset = 12;
 	}
 	if (shoot.pressed) {
-		
+		uint16_t eposx = (uint16_t)std::round(enemy_at.x / 8 - 3);
+		uint16_t eposy = (uint16_t)std::round(enemy_at.y / 8 - 2);
+
+		if((eposx %8 <= 1 | eposx %8 >= 7) && (eposy %6 <= 1 | eposy %6 >= 5)){
+			// check if player is there
+			uint16_t posx = (uint16_t)std::round(player_at.x / 8 - 3);
+			uint16_t posy = (uint16_t)std::round(player_at.y / 8 - 2);
+			float_t px = (std::round((float)posx/8.f)*8 + 3) * 8.f;
+			float_t py = (std::round((float)posy/6.f)*6 + 2) * 8.f;
+			float_t ex = (std::round((float)eposx/8.f)*8 + 3) * 8.f;
+			float_t ey = (std::round((float)eposy/6.f)*6 + 2) * 8.f;
+			if(px == ex && py == ey){
+				hidden = false;
+				player_hide = 0x00;
+				raccoon_color = 4;
+			}
+		}
 	}
 
 	//reset button press counters:
@@ -197,6 +257,7 @@ void PlayMode::update(float elapsed) {
 	up.downs = 0;
 	down.downs = 0;
 	hide.downs = 0;
+	unhide.downs = 0;
 
 	w.downs = 0;
 	a.downs = 0;
@@ -221,12 +282,22 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		}
 	}
 
+	
+
+	// coin sprites
+	for (uint32_t i = 8; i < 64; ++i) {
+		ppu.sprites[i].x = coinx[i-8];
+		ppu.sprites[i].y = coiny[i-8];
+		ppu.sprites[i].index = 40;
+		ppu.sprites[i].attributes = 4;
+	}
+
 	//player sprite:
 	for (uint32_t i = 0; i < 4; ++i) {
 		ppu.sprites[i].x = int8_t(player_at.x) + (8 * (i & 0x01));
 		ppu.sprites[i].y = int8_t(player_at.y) + (8 * ((i >> 1) & 0x01));
 		ppu.sprites[i].index = i + player_offset;
-		ppu.sprites[i].attributes = 7 | player_hide;
+		ppu.sprites[i].attributes = duck_color | player_hide;
 	}
 
 	// enemy sprite:
@@ -234,16 +305,10 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		ppu.sprites[i].x = int8_t(enemy_at.x) + (8 * (i & 0x01));
 		ppu.sprites[i].y = int8_t(enemy_at.y) + (8 * ((i>> 1) & 0x01));
 		ppu.sprites[i].index = 16 + i + enemy_offset;
-		ppu.sprites[i].attributes = 3;
+		ppu.sprites[i].attributes = raccoon_color;
 	}
 
-	// coin sprites
-	for (uint32_t i = 8; i < 63; ++i) {
-		ppu.sprites[i].x = int8_t(PPU466::ScreenWidth/56 * (i-8));
-		ppu.sprites[i].y = int8_t(PPU466::ScreenHeight/ 56 * (i-8));
-		ppu.sprites[i].index = 40;
-		ppu.sprites[i].attributes = 4;
-	}
+	//std::cout << int32_t(player_at.x) << " " << int32_t(player_at.y) << std::endl;
 
 	//--- actually draw ---
 	ppu.draw(drawable_size);
