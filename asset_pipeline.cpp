@@ -52,7 +52,7 @@ void load_tiles(PPU466 *ppu) {
         }
     }
 
-    std::cout << "Loading sprites." << std::endl;
+    std::cout << "Loading tiles." << std::endl;
     uint32_t index = 0;
     std::string filename = "assets";
 
@@ -89,7 +89,6 @@ void load_tiles(PPU466 *ppu) {
         index++;
     }
 
-    std::cout << "Loading game tiles." << std::endl;
     index = 36;
 
     // tiles 36 - 39 are the bush tiles
@@ -123,7 +122,6 @@ void load_tiles(PPU466 *ppu) {
         ppu->tile_table[index] = get_tile(entry.path().string(), size, data, palette);
         index++;
     }*/
-    std::cout << "Loaded " << index << " game assets." << std::endl;
 }
 
 PPU466::Tile get_tile(

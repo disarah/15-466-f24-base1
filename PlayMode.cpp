@@ -7,6 +7,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <random>
+#include <bitset>
 
 PlayMode::PlayMode() {
 	load_tiles(&ppu);
@@ -22,13 +23,6 @@ PlayMode::PlayMode() {
 		glm::u8vec4(0x00, 0x00, 0x00, 0xff),
 	};
 
-	//makes the center of tiles 0-16 solid:
-	ppu.palette_table[1] = {
-		glm::u8vec4(0x00, 0x00, 0x00, 0x00),
-		glm::u8vec4(0x00, 0x00, 0x00, 0x00),
-		glm::u8vec4(0x00, 0x00, 0x00, 0xff),
-		glm::u8vec4(0x00, 0x00, 0x00, 0xff),
-	};
 	/*
 		Tile table:
 		0-15: player
@@ -70,7 +64,8 @@ PlayMode::PlayMode() {
 	} // 2,3
 
 	// add in time in the top right corner
-	//map[PPU466::BackgroundWidth * PPU466::BackgroundHeight - 1] = (0x01 << 8) | (0x24);
+	map[0] = (0x01 << 8) | (0x37); // starts at 10
+	map[1] = (0x01 << 8) | (0x2D); // starts at 0
 
 	for (uint32_t coin_index = 0; coin_index < 56; coin_index++){
 		coinx[coin_index] = std::rand() % 220 + 5;
@@ -128,6 +123,10 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			shoot.downs += 1;
 			shoot.pressed = true;
 			return true;
+		} else if (evt.key.keysym.sym == SDLK_q) {
+			prowl.downs += 1;
+			prowl.pressed = true;
+			return true;
 		}
 	} else if (evt.type == SDL_KEYUP) {
 		if (evt.key.keysym.sym == SDLK_LEFT) {
@@ -163,6 +162,9 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		} else if (evt.key.keysym.sym == SDLK_e) {
 			shoot.pressed = false;
 			return true;
+		} else if (evt.key.keysym.sym == SDLK_q) {
+			prowl.pressed = false;
+			return true;
 		}
 	}
 
@@ -170,14 +172,17 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 }
 
 void PlayMode::update(float elapsed) {
-
-	//slowly rotates through [0,1):
-	// (will be used to set background color)
 	bg_fade = std::sin(elapsed *100.0f);
 	bg_fade -= std::floor(bg_fade);
 
+	duck_time = std::min(duck_time + elapsed, 10.f);
+	raccoon_time = std::min(raccoon_time + elapsed, 10.f);
+	map[0] = (0x03 << 8) | (0x37) - (int)raccoon_time;
+	map[1] = (0x01 << 8) | (0x37) - (int)duck_time;
+
 	constexpr float PlayerSpeed = 30.0f;
-	if(!hidden){
+	std::cout << (duck_time < 10.f) << std::endl;
+	if((duck_time < 10.f) && !hidden){
 		if (left.pressed) {
 			player_at.x -= PlayerSpeed * elapsed;
 			player_at.x = std::clamp(player_at.x, 0.f, 240.f);
@@ -198,58 +203,73 @@ void PlayMode::update(float elapsed) {
 			player_at.y = std::clamp(player_at.y, 0.f, 240.f);
 			player_offset = 12;
 		}
-	}
-	if (hide.pressed) {
-		uint16_t posx = (uint16_t)std::round(player_at.x / 8 - 3);
-		uint16_t posy = (uint16_t)std::round(player_at.y / 8 - 2);
-
-		if((posx %8 <= 1 | posx %8 >= 7) && (posy %6 <= 1 | posy %6 >= 5)){
-			hidden = true;
-			player_hide = 0x80;
-			player_at.x = (std::round((float)posx/8.f)*8 + 3) * 8.f;
-			player_at.y = (std::round((float)posy/6.f)*6 + 2) * 8.f;
-		}
-	}
-	if (unhide.pressed) {
-		hidden = false;
-		player_hide = 0x00;
-	}
-	if (a.pressed) {
-		enemy_at.x -= PlayerSpeed * elapsed;
-		enemy_at.x = std::clamp(enemy_at.x, 0.f, 240.f);
-		enemy_offset = 0;
-	}
-	if (d.pressed) {
-		enemy_at.x += PlayerSpeed * elapsed;
-		enemy_at.x = std::clamp(enemy_at.x, 0.f, 240.f);
-		enemy_offset = 4;
-	}
-	if (s.pressed) {
-		enemy_at.y -= PlayerSpeed * elapsed;
-		enemy_at.y = std::clamp(enemy_at.y, 0.f, 240.f);
-		enemy_offset = 8;
-	}
-	if (w.pressed) {
-		enemy_at.y += PlayerSpeed * elapsed;
-		enemy_at.y = std::clamp(enemy_at.y, 0.f, 240.f);
-		enemy_offset = 12;
-	}
-	if (shoot.pressed) {
-		uint16_t eposx = (uint16_t)std::round(enemy_at.x / 8 - 3);
-		uint16_t eposy = (uint16_t)std::round(enemy_at.y / 8 - 2);
-
-		if((eposx %8 <= 1 | eposx %8 >= 7) && (eposy %6 <= 1 | eposy %6 >= 5)){
-			// check if player is there
+		if (hide.pressed) {
 			uint16_t posx = (uint16_t)std::round(player_at.x / 8 - 3);
 			uint16_t posy = (uint16_t)std::round(player_at.y / 8 - 2);
-			float_t px = (std::round((float)posx/8.f)*8 + 3) * 8.f;
-			float_t py = (std::round((float)posy/6.f)*6 + 2) * 8.f;
-			float_t ex = (std::round((float)eposx/8.f)*8 + 3) * 8.f;
-			float_t ey = (std::round((float)eposy/6.f)*6 + 2) * 8.f;
-			if(px == ex && py == ey){
-				hidden = false;
-				player_hide = 0x00;
-				raccoon_color = 4;
+
+			if((posx %8 <= 1 | posx %8 >= 7) && (posy %6 <= 1 | posy %6 >= 5)){
+				hidden = true;
+				player_hide = 0x80;
+				player_at.x = (std::round((float)posx/8.f)*8 + 3) * 8.f;
+				player_at.y = (std::round((float)posy/6.f)*6 + 2) * 8.f;
+				duck_time = 10.f;
+			}
+		}
+	}
+
+	if(duck_time >= 10.f && raccoon_time >= 10.f) {
+		if (unhide.pressed && !has_gone) {
+			hidden = false;
+			player_hide = 0x00;
+			duck_time = 0.f;
+			has_gone = true;
+		}
+
+		if(prowl.pressed && has_gone) {
+			raccoon_time = 0.f;
+			has_gone = false;
+		}
+	}
+
+	if(raccoon_time < 10.f){
+		if (a.pressed) {
+			enemy_at.x -= PlayerSpeed * elapsed;
+			enemy_at.x = std::clamp(enemy_at.x, 0.f, 240.f);
+			enemy_offset = 0;
+		}
+		if (d.pressed) {
+			enemy_at.x += PlayerSpeed * elapsed;
+			enemy_at.x = std::clamp(enemy_at.x, 0.f, 240.f);
+			enemy_offset = 4;
+		}
+		if (s.pressed) {
+			enemy_at.y -= PlayerSpeed * elapsed;
+			enemy_at.y = std::clamp(enemy_at.y, 0.f, 240.f);
+			enemy_offset = 8;
+		}
+		if (w.pressed) {
+			enemy_at.y += PlayerSpeed * elapsed;
+			enemy_at.y = std::clamp(enemy_at.y, 0.f, 240.f);
+			enemy_offset = 12;
+		}
+		if (shoot.pressed) {
+			uint16_t eposx = (uint16_t)std::round(enemy_at.x / 8 - 3);
+			uint16_t eposy = (uint16_t)std::round(enemy_at.y / 8 - 2);
+
+			if((eposx %8 <= 1 | eposx %8 >= 7) && (eposy %6 <= 1 | eposy %6 >= 5)){
+				// check if player is there
+				uint16_t posx = (uint16_t)std::round(player_at.x / 8 - 3);
+				uint16_t posy = (uint16_t)std::round(player_at.y / 8 - 2);
+				float_t px = (std::round((float)posx/8.f)*8 + 3) * 8.f;
+				float_t py = (std::round((float)posy/6.f)*6 + 2) * 8.f;
+				float_t ex = (std::round((float)eposx/8.f)*8 + 3) * 8.f;
+				float_t ey = (std::round((float)eposy/6.f)*6 + 2) * 8.f;
+				if(px == ex && py == ey){
+					hidden = false;
+					player_hide = 0x00;
+					raccoon_color = 4;
+				}
+				raccoon_time = 10.f;
 			}
 		}
 	}
@@ -267,6 +287,7 @@ void PlayMode::update(float elapsed) {
 	s.downs = 0;
 	d.downs = 0;
 	shoot.downs = 0;
+	prowl.downs = 0;
 }
 
 void PlayMode::draw(glm::uvec2 const &drawable_size) {
@@ -278,14 +299,11 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 
 	ppu.background_color = glm::u8vec4(r,g,b,0xFF);
 
-	// just do a grid of grass for now
 	for (uint32_t y = 0; y < PPU466::BackgroundHeight; ++y) {
 		for (uint32_t x = 0; x < PPU466::BackgroundWidth; ++x) {
 			ppu.background[x+PPU466::BackgroundWidth*y] = map[x+PPU466::BackgroundWidth*y];
 		}
 	}
-
-
 
 	// coin sprites
 	for (uint32_t i = 8; i < 64; ++i) {

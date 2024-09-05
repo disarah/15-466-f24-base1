@@ -27,9 +27,9 @@ The raccoon and duck are natural enemies. The game is divided up into 10 second 
 
 This is a two player game. First decide who wants to be the raccoon and who wants to be the duck.
 
-Raccoon: Move around using the WASD keys. Shoot using E.
+Raccoon: Move around using the WASD keys. Shoot using E. Press Q to start your turn.
 
-Duck: Move around using the arrow keys. Hide using the right shift button. Unhide using the forward slash button.
+Duck: Move around using the arrow keys. Hide using the right shift button. Unhide using the forward slash button (starts your turn).
 
 This game also uses the honor system. Once the raccoon has shot at a bush, the raccoon player should look away to give the duck an opportunity to hide!
 

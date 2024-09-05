@@ -22,10 +22,12 @@ struct PlayMode : Mode {
 	struct Button {
 		uint8_t downs = 0;
 		uint8_t pressed = 0;
-	} left, right, down, up, hide, unhide, w, a, s, d, shoot;
+	} left, right, down, up, hide, unhide, w, a, s, d, shoot, prowl;
 
 	bool hidden = false;
-	float time = 120;
+	bool has_gone = true; // prevents duck/raccoon from taking multiple turns
+	float duck_time = 0; // 10 second increments
+	float raccoon_time = 10; // 10 second increments
 	uint16_t raccoon_color = 3;
 	uint16_t duck_color = 7;
 
