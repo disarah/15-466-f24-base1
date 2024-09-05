@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <deque>
+#include <map>
 
 struct PlayMode : Mode {
 	PlayMode();
@@ -24,10 +25,12 @@ struct PlayMode : Mode {
 		uint8_t pressed = 0;
 	} left, right, down, up, hide, unhide, w, a, s, d, shoot, prowl;
 
-	bool hidden = false;
+	// game variables
+	bool hidden = false; // hidden state of duck
 	bool has_gone = true; // prevents duck/raccoon from taking multiple turns
 	float duck_time = 0; // 10 second increments
 	float raccoon_time = 10; // 10 second increments
+
 	uint16_t raccoon_color = 3;
 	uint16_t duck_color = 7;
 
@@ -37,6 +40,7 @@ struct PlayMode : Mode {
 	std::array< uint16_t, PPU466::BackgroundWidth * PPU466::BackgroundHeight > map;
 	std::array< uint8_t, 56 > coinx; // Todo: vary # of coins
 	std::array< uint8_t, 56 > coiny; // Todo: vary # of coins
+	std::map<std::vector<uint32_t>, uint32_t> coin_pos; // map of coin location to index
 
 	//player position:
 	glm::vec2 player_at = glm::vec2(PPU466::ScreenWidth/2, PPU466::ScreenHeight/2);

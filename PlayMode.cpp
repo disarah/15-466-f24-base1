@@ -67,9 +67,14 @@ PlayMode::PlayMode() {
 	map[0] = (0x01 << 8) | (0x37); // starts at 10
 	map[1] = (0x01 << 8) | (0x2D); // starts at 0
 
+	std::vector<uint32_t> key;
+
 	for (uint32_t coin_index = 0; coin_index < 56; coin_index++){
-		coinx[coin_index] = std::rand() % 220 + 5;
-		coiny[coin_index] = std::rand() % 220 + 5;
+		coinx[coin_index] = (((std::rand() % 220) + 4) / 8) * 8 + 8;
+		coiny[coin_index] = (((std::rand() % 220) + 4) / 8) * 8 + 8;
+		
+		key = {uint32_t(coinx[coin_index]), uint32_t(coiny[coin_index])};
+		coin_pos[key] = coin_index;
 	}
 }
 
@@ -181,7 +186,7 @@ void PlayMode::update(float elapsed) {
 	map[1] = (0x01 << 8) | (0x37) - (int)duck_time;
 
 	constexpr float PlayerSpeed = 30.0f;
-	std::cout << (duck_time < 10.f) << std::endl;
+
 	if((duck_time < 10.f) && !hidden){
 		if (left.pressed) {
 			player_at.x -= PlayerSpeed * elapsed;
@@ -253,23 +258,27 @@ void PlayMode::update(float elapsed) {
 			enemy_offset = 12;
 		}
 		if (shoot.pressed) {
-			uint16_t eposx = (uint16_t)std::round(enemy_at.x / 8 - 3);
-			uint16_t eposy = (uint16_t)std::round(enemy_at.y / 8 - 2);
+			if(!hidden){ // duck didn't hide in time
+				raccoon_color = 4;
+			} else {
+				uint16_t eposx = (uint16_t)std::round(enemy_at.x / 8 - 3);
+				uint16_t eposy = (uint16_t)std::round(enemy_at.y / 8 - 2);
 
-			if((eposx %8 <= 1 | eposx %8 >= 7) && (eposy %6 <= 1 | eposy %6 >= 5)){
-				// check if player is there
-				uint16_t posx = (uint16_t)std::round(player_at.x / 8 - 3);
-				uint16_t posy = (uint16_t)std::round(player_at.y / 8 - 2);
-				float_t px = (std::round((float)posx/8.f)*8 + 3) * 8.f;
-				float_t py = (std::round((float)posy/6.f)*6 + 2) * 8.f;
-				float_t ex = (std::round((float)eposx/8.f)*8 + 3) * 8.f;
-				float_t ey = (std::round((float)eposy/6.f)*6 + 2) * 8.f;
-				if(px == ex && py == ey){
-					hidden = false;
-					player_hide = 0x00;
-					raccoon_color = 4;
+				if((eposx %8 <= 1 | eposx %8 >= 7) && (eposy %6 <= 1 | eposy %6 >= 5)){
+					// check if player is there
+					uint16_t posx = (uint16_t)std::round(player_at.x / 8 - 3);
+					uint16_t posy = (uint16_t)std::round(player_at.y / 8 - 2);
+					float_t px = (std::round((float)posx/8.f)*8 + 3) * 8.f;
+					float_t py = (std::round((float)posy/6.f)*6 + 2) * 8.f;
+					float_t ex = (std::round((float)eposx/8.f)*8 + 3) * 8.f;
+					float_t ey = (std::round((float)eposy/6.f)*6 + 2) * 8.f;
+					if(px == ex && py == ey){
+						hidden = false;
+						player_hide = 0x00;
+						raccoon_color = 4;
+					}
+					raccoon_time = 10.f;
 				}
-				raccoon_time = 10.f;
 			}
 		}
 	}
@@ -288,6 +297,19 @@ void PlayMode::update(float elapsed) {
 	d.downs = 0;
 	shoot.downs = 0;
 	prowl.downs = 0;
+
+	// check is duck has collected any coins
+	std::vector<uint32_t> key;
+	for (uint32_t i = 0; i < 16; ++i) {
+		for (uint32_t j = 0; j < 16; ++j) {
+			key = {uint32_t(player_at.x + i), uint32_t(player_at.y + j)};
+			if(coin_pos.count(key) > 0){
+				uint32_t coin_index = coin_pos[key];
+				coinx[coin_index] = (uint8_t)280;
+				coiny[coin_index] = (uint8_t)280;
+			}
+		}
+	}
 }
 
 void PlayMode::draw(glm::uvec2 const &drawable_size) {
