@@ -19,6 +19,8 @@ Afterwards I load in sprites first and then other assets. There is no particular
 
 My source files are located in the [assets](/assets/) folder. My sprites (duck and raccoon) are located in a subfolder of assets called [sprites](/assets/sprites/). All other tiles (grass, bushes, coins, numbers) are found under the [tiles](/assets/tiles/) subfolder. 
 
+Music: I also composed a little tune that plays in the background while the game is playing. To do this I used bitsy's chiptune editor and then recorded the computer audio using a combination of Zoom's Computer Audio Recorder and Quicktime's audio recording function (I however do not recommend bitsy's chiptune editor for more complicated tunes. For that I'd recommend music tools like Bosca Ceoil or some other DAW; those tools also allow you to export as midi/use instruments other than the square wave). Then I used Audacity to crop the wav. The tune can be found in assets as duckraccoontheme.wav. 
+
 ## Game Premise
 
 The raccoon and duck are natural enemies. The game is divided up into 10 second increments. Within each increment the raccoon and duck take turns scouring the map. The goal of the duck is to collect as many coins as possible on the map without getting caught. The goal of the raccoon is to catch the duck. The game ends when either the duck is found by the raccoon or if the duck collects all of the coins.
