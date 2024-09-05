@@ -26,6 +26,7 @@
 #ifdef _WIN32
 extern "C" { uint32_t GetACP(); }
 #endif
+
 int main(int argc, char **argv) {
 #ifdef _WIN32
 	{ //when compiled on windows, check that code page is forced to utf-8 (makes file loading/saving work right):
@@ -60,6 +61,26 @@ int main(int argc, char **argv) {
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+
+
+	/**************************************************************************/
+	// Finding an example of loading audio using the SDLK library
+	// https://gist.github.com/armornick/3447121
+	if (SDL_Init(SDL_INIT_AUDIO) < 0) return 1;
+
+	// local variables
+	static SDL_AudioSpec wav_spec;
+	static uint8_t *wav_buffer;
+	static uint32_t wav_length;
+	
+	/* Load the WAV */
+	SDL_LoadWAV("assets/duckraccoontheme.wav", &wav_spec, &wav_buffer, &wav_length);
+	
+	/* open the audio device */
+	SDL_OpenAudio(&wav_spec, NULL);
+	
+	SDL_QueueAudio(1, wav_buffer, wav_length);
+	/**************************************************************************/
 
 	//create window:
 	SDL_Window *window = SDL_CreateWindow(
@@ -125,6 +146,8 @@ int main(int argc, char **argv) {
 	};
 	on_resize();
 
+	SDL_PauseAudio(0);
+
 	//This will loop until the current mode is set to null:
 	while (Mode::current) {
 		//every pass through the game loop creates one frame of output
@@ -158,6 +181,9 @@ int main(int argc, char **argv) {
 					}
 					save_png(filename, glm::uvec2(w,h), data.data(), LowerLeftOrigin);
 				}
+			}
+			if(SDL_GetQueuedAudioSize(1) == 0){
+				SDL_QueueAudio(1, wav_buffer, wav_length);
 			}
 			if (!Mode::current) break;
 		}
@@ -193,6 +219,13 @@ int main(int argc, char **argv) {
 
 	SDL_DestroyWindow(window);
 	window = NULL;
+
+	
+	/**************************************************************************/
+	//https://gist.github.com/armornick/3447121
+	SDL_CloseAudio();
+	SDL_FreeWAV(wav_buffer);
+	/**************************************************************************/
 
 	return 0;
 
