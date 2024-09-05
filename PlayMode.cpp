@@ -275,7 +275,7 @@ void PlayMode::update(float elapsed) {
 					if(px == ex && py == ey){
 						hidden = false;
 						player_hide = 0x00;
-						raccoon_color = 4;
+						raccoon_color = gold_color;
 					}
 					raccoon_time = 10.f;
 				}
@@ -307,8 +307,15 @@ void PlayMode::update(float elapsed) {
 				uint32_t coin_index = coin_pos[key];
 				coinx[coin_index] = (uint8_t)280;
 				coiny[coin_index] = (uint8_t)280;
+				coin_pos.erase(key);
+
+				coins_collected++;
 			}
 		}
+	}
+
+	if(coins_collected > coins_needed){
+		duck_color = gold_color;
 	}
 }
 
@@ -332,7 +339,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		ppu.sprites[i].x = coinx[i-8];
 		ppu.sprites[i].y = coiny[i-8];
 		ppu.sprites[i].index = 40;
-		ppu.sprites[i].attributes = 4;
+		ppu.sprites[i].attributes = gold_color;
 	}
 
 	//player sprite:

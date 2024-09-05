@@ -31,7 +31,11 @@ struct PlayMode : Mode {
 	float duck_time = 0; // 10 second increments
 	float raccoon_time = 10; // 10 second increments
 
+	uint16_t coins_collected = 0;
+	uint16_t coins_needed = 50;
+
 	uint16_t raccoon_color = 3;
+	uint16_t gold_color = 4;
 	uint16_t duck_color = 7;
 
 	//some weird background animation:
