@@ -12,6 +12,9 @@
 PlayMode::PlayMode() {
 	load_tiles(&ppu);
 
+	//https://en.cppreference.com/w/cpp/numeric/random/rand#:~:text=If%20rand()%20is%20used,of%20values%20on%20successive%20calls.
+	std::srand(std::time(nullptr)); 
+
 	//use sprite 0-4 as a "player":
 
 
@@ -298,7 +301,7 @@ void PlayMode::update(float elapsed) {
 	shoot.downs = 0;
 	prowl.downs = 0;
 
-	// check is duck has collected any coins
+	// check if duck has collected any coins
 	uint32_t playerxrounded = ((uint32_t(player_at.x) + 4) / 8) * 8;
 	uint32_t playeryrounded = ((uint32_t(player_at.y) + 4) / 8) * 8;
 	std::vector<uint32_t> key;
