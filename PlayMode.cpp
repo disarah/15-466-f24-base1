@@ -63,7 +63,7 @@ PlayMode::PlayMode() {
 		}
 	} // 2,3
 
-	// add in time in the top right corner
+	// add in time in the bottom left corner
 	map[0] = (0x01 << 8) | (0x37); // starts at 10
 	map[1] = (0x01 << 8) | (0x2D); // starts at 0
 
@@ -299,16 +299,17 @@ void PlayMode::update(float elapsed) {
 	prowl.downs = 0;
 
 	// check is duck has collected any coins
+	uint32_t playerxrounded = ((uint32_t(player_at.x) + 4) / 8) * 8;
+	uint32_t playeryrounded = ((uint32_t(player_at.y) + 4) / 8) * 8;
 	std::vector<uint32_t> key;
-	for (uint32_t i = 0; i < 16; ++i) {
-		for (uint32_t j = 0; j < 16; ++j) {
-			key = {uint32_t(player_at.x + i), uint32_t(player_at.y + j)};
+	for (uint32_t i = 0; i < 2; ++i) {
+		for (uint32_t j = 0; j < 2; ++j) {
+			key = {uint32_t(playerxrounded + i*8), uint32_t(playeryrounded + j*8)};
 			if(coin_pos.count(key) > 0){
 				uint32_t coin_index = coin_pos[key];
-				coinx[coin_index] = (uint8_t)280;
-				coiny[coin_index] = (uint8_t)280;
+				coinx[coin_index] = (uint8_t)500;
+				coiny[coin_index] = (uint8_t)500;
 				coin_pos.erase(key);
-
 				coins_collected++;
 			}
 		}
