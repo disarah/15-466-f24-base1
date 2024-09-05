@@ -25,6 +25,7 @@ struct PlayMode : Mode {
 	} left, right, down, up, hide, unhide, w, a, s, d, shoot;
 
 	bool hidden = false;
+	float time = 120;
 	uint16_t raccoon_color = 3;
 	uint16_t duck_color = 7;
 

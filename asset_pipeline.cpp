@@ -110,8 +110,8 @@ void load_tiles(PPU466 *ppu) {
         index++;
     }
 
-    // tiles 45 - 54 are the number tiles
-    for (uint8_t i = 0; i < 10; ++i) {
+    // tiles 45 - 55 are the number tiles
+    for (uint8_t i = 0; i < 11; ++i) {
         filename = "assets/tiles/" + std::to_string(i) + ".png";
         ppu->tile_table[index] = get_tile(filename, size, data, palette);
         index++;

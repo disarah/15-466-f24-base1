@@ -36,7 +36,7 @@ PlayMode::PlayMode() {
 		36-39: bush
 		40: coin
 		41-44: grass
-		45-54: numbers
+		45-55: numbers
 	*/
 	
 	
@@ -68,6 +68,9 @@ PlayMode::PlayMode() {
 			map[(x + 1)+PPU466::BackgroundWidth*(y + 1)] = (0x05 << 8) | (0x27);
 		}
 	} // 2,3
+
+	// add in time in the top right corner
+	//map[PPU466::BackgroundWidth * PPU466::BackgroundHeight - 1] = (0x01 << 8) | (0x24);
 
 	for (uint32_t coin_index = 0; coin_index < 56; coin_index++){
 		coinx[coin_index] = std::rand() % 220 + 5;
@@ -282,7 +285,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		}
 	}
 
-	
+
 
 	// coin sprites
 	for (uint32_t i = 8; i < 64; ++i) {
