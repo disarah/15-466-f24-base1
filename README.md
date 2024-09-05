@@ -31,5 +31,7 @@ Raccoon: Move around using the WASD keys. Shoot using E.
 
 Duck: Move around using the arrow keys. Hide using the right shift button. Unhide using the forward slash button.
 
+This game also uses the honor system. Once the raccoon has shot at a bush, the raccoon player should look away to give the duck an opportunity to hide!
+
 ## This game was built with [NEST](NEST.md).
 
