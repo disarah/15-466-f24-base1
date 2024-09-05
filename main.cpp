@@ -182,7 +182,7 @@ int main(int argc, char **argv) {
 					save_png(filename, glm::uvec2(w,h), data.data(), LowerLeftOrigin);
 				}
 			}
-			if(SDL_GetQueuedAudioSize(1) == 0){
+			if(SDL_GetQueuedAudioSize(1) == 0){ // loop music forever!!!
 				SDL_QueueAudio(1, wav_buffer, wav_length);
 			}
 			if (!Mode::current) break;

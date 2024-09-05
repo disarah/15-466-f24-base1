@@ -21,7 +21,7 @@ My source files are located in the [assets](/assets/) folder. My sprites (duck a
 
 ## Game Premise
 
-The raccoon and duck are natural enemies. The game is divided up into 10 second increments. Within each increment the raccoon and duck take turns scouring the map. The goal of the duck is to collect all of the coins on the map without getting caught. The goal of the raccoon is to catch the duck. The game ends when either the duck is found by the raccoon or if the duck collects all of the coins.
+The raccoon and duck are natural enemies. The game is divided up into 10 second increments. Within each increment the raccoon and duck take turns scouring the map. The goal of the duck is to collect as many coins as possible on the map without getting caught. The goal of the raccoon is to catch the duck. The game ends when either the duck is found by the raccoon or if the duck collects all of the coins.
 
 ## How To Play:
 
